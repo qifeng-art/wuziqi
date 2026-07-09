@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>优雅五子棋</title>
+<style>
+:root {
+    --bg: #f8f3ea;
+    --panel-bg: #faf6ef;
+    --panel-border: #b9a88e;
+    --line: #3c3024;
+    --wood: #dec08e;
+    --wood-frame: #b28c58;
+    --wood-dark: #8e6638;
+    --divider: #c3b296;
+    --btn-bg: #c0af94;
+    --btn-hover: #d2c0a2;
+    --btn-border: #948064;
+    --btn-text: #483622;
+    --text-dark: #483622;
+    --text-muted: #8c785f;
+    --text-accent: #b93c2d;
+    --gold: #ebc323;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    background: var(--bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-family: 'Microsoft YaHei', 'SimHei', 'PingFang SC', 'Noto Sans SC', 'Microsoft JhengHei', sans-serif;
+    overflow-y: auto;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#app {
+    display: flex;
+    gap: 0;
+    align-items: stretch;
+    justify-content: center;
+    padding: 12px;
+    max-width: 850px;
+    width: 100%;
+}
+
+/* ========== Menu Screen ========== */
+#menu {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+}
+
+#menu h1 {
+    font-size: clamp(32px, 6vw, 56px);
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    letter-spacing: 4px;
+}
+
+#menu .deco-line {
+    width: 180px;
+    height: 1px;
+    background: var(--divider);
+    position: relative;
+    margin-bottom: 12px;
+}
+
+#menu .deco-line::after {
+    content: '';
+    position: absolute;
+    left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    width: 8px; height: 8px;
+    background: var(--panel-border);
+    border-radius: 50%;
+}
+
+#menu .subtitle {
+    font-size: 16px;
+    color: var(--text-muted);
+    margin-bottom: 40px;
+}
+
+#menu .menu-btn {
+    width: 220px;
+    height: 50px;
+    border: 2px solid var(--btn-border);
+    border-radius: 14px;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    font-size: 20px;
+    font-family: inherit;
+    cursor: pointer;
+    margin-bottom: 18px;
+    transition: all 0.2s;
+    font-weight: bold;
+}
+
+#menu .menu-btn:hover, #menu .menu-btn:active {
+    background: var(--btn-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+#menu .footer {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-top: 30px;
+}
+
+/* ========== Game Screen ========== */
+#game {
+    display: none;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 0;
+    width: 100%;
+    max-width: 850px;
+}
+
+#board-container {
+    flex-shrink: 0;
+    position: relative;
+}
+
+canvas#board {
+    display: block;
+    cursor: pointer;
+    border-radius: 4px;
+    max-width: 100%;
+    height: auto;
+}
+
+#board-container {
+    max-width: 100%;
+}
+
+/* ========== Panel ========== */
+#panel {
+    flex: 1;
+    min-width: 160px;
+    max-width: 230px;
+    background: var(--panel-bg);
+    border: 2px solid var(--panel-border);
+    border-radius: 18px;
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    margin-left: 12px;
+}
+
+#panel h2 {
+    font-size: 22px;
+    color: var(--text-dark);
+    text-align: center;
+    margin-bottom: 12px;
+}
+
+#panel .sep {
+    height: 1px;
+    background: var(--divider);
+    margin: 10px 0;
+}
+
+#panel .label {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+#panel .mode-box {
+    background: var(--wood);
+    border: 1px solid var(--panel-border);
+    border-radius: 10px;
+    padding: 8px;
+    text-align: center;
+    font-size: 18px;
+    color: var(--text-dark);
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 4px;
+}
+
+#panel .mode-box:hover {
+    background: var(--btn-hover);
+}
+
+#panel .turn-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 8px 0;
+}
+
+#panel .stone-dot {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+#panel .stone-dot.black {
+    background: radial-gradient(circle at 35% 35%, #6e6460, #1c1c1c);
+    box-shadow: 1px 2px 3px rgba(0,0,0,0.3);
+}
+
+#panel .stone-dot.white {
+    background: radial-gradient(circle at 35% 35%, #fff, #d8d0c8);
+    border: 1px solid #c8c0b8;
+    box-shadow: 1px 2px 3px rgba(0,0,0,0.15);
+}
+
+#panel .stone-dot.draw {
+    background: #afa9a2;
+}
+
+#panel .turn-text {
+    font-size: 18px;
+    color: var(--text-dark);
+}
+
+#panel .turn-text.end {
+    color: var(--text-accent);
+}
+
+#panel .info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    margin: 4px 0;
+}
+
+#panel .info-row .key { color: var(--text-muted); }
+#panel .info-row .val { color: var(--text-dark); }
+
+#panel .btns {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 14px;
+}
+
+#panel .game-btn {
+    width: 100%;
+    height: 42px;
+    border: 2px solid var(--btn-border);
+    border-radius: 12px;
+    background: var(--btn-bg);
+    color: var(--btn-text);
+    font-size: 16px;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-weight: bold;
+}
+
+#panel .game-btn:hover, #panel .game-btn:active {
+    background: var(--btn-hover);
+}
+
+/* ========== Toast ========== */
+#toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(200, 185, 160, 0.92);
+    color: var(--text-dark);
+    padding: 8px 24px;
+    border-radius: 20px;
+    font-size: 14px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 100;
+}
+
+#toast.show {
+    opacity: 1;
+}
+
+/* ========== Mobile ========== */
+@media (max-width: 700px) {
+    #game {
+        flex-direction: column;
+        align-items: center;
+    }
+    #panel {
+        flex-direction: row;
+        flex-wrap: wrap;
+        max-width: 100%;
+        min-width: auto;
+        margin-left: 0;
+        margin-top: 8px;
+        padding: 10px 14px;
+        gap: 6px;
+        align-items: center;
+        width: 100%;
+    }
+    #panel h2 { font-size: 16px; margin-bottom: 0; }
+    #panel .sep { display: none; }
+    #panel .label { font-size: 11px; }
+    #panel .mode-box { font-size: 14px; padding: 4px 10px; }
+    #panel .turn-text { font-size: 14px; }
+    #panel .btns { flex-direction: row; gap: 6px; padding-top: 0; }
+    #panel .game-btn { font-size: 13px; height: 34px; }
+    #panel .info-row { font-size: 12px; margin: 2px 0; }
+    #panel .info-row .val { margin-left: 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ========== MENU ========== -->
+<div id="menu">
+    <h1>优雅五子棋</h1>
+    <div class="deco-line"></div>
+    <p class="subtitle">请选择对战模式</p>
+    <button class="menu-btn" onclick="startGame('pvp')">👥 双人对战</button>
+    <button class="menu-btn" onclick="startGame('pve')">🤖 人机对战</button>
+    <p class="footer">v1.0 · HTML5 Canvas</p>
+</div>
+
+<!-- ========== GAME ========== -->
+<div id="game">
+    <div id="board-container">
+        <canvas id="board"></canvas>
+    </div>
+    <div id="panel">
+        <h2>优雅五子棋</h2>
+        <div class="sep"></div>
+        <span class="label">对战模式</span>
+        <div class="mode-box" id="modeBox" onclick="switchMode()">双人对战</div>
+        <div class="sep"></div>
+        <span class="label">当前回合</span>
+        <div class="turn-info">
+            <div class="stone-dot black" id="turnDot"></div>
+            <span class="turn-text" id="turnText">黑棋回合</span>
+        </div>
+        <div class="sep"></div>
+        <div class="info-row"><span class="key">落子数</span><span class="val" id="moveCount">0 手</span></div>
+        <div class="info-row"><span class="key">上一步</span><span class="val" id="lastMoveInfo">-</span></div>
+        <div class="btns">
+            <button class="game-btn" onclick="newGame()">🔄 再来一局</button>
+            <button class="game-btn" onclick="undoMove()">↩ 悔棋</button>
+            <button class="game-btn" onclick="backToMenu()">🚪 返回菜单</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ==================== Canvas roundRect polyfill ====================
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+    CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+        if (typeof r === 'number') r = { tl: r, tr: r, br: r, bl: r };
+        this.beginPath();
+        this.moveTo(x + r.tl, y);
+        this.lineTo(x + w - r.tr, y);
+        this.quadraticCurveTo(x + w, y, x + w, y + r.tr);
+        this.lineTo(x + w, y + h - r.br);
+        this.quadraticCurveTo(x + w, y + h, x + w - r.br, y + h);
+        this.lineTo(x + r.bl, y + h);
+        this.quadraticCurveTo(x, y + h, x, y + h - r.bl);
+        this.lineTo(x, y + r.tl);
+        this.quadraticCurveTo(x, y, x + r.tl, y);
+    };
+}
+
+// ==================== 常量 ====================
+const BOARD_SIZE = 15;
+const CELL_SIZE = 34;
+const BOARD_MARGIN = 26;
+const WOOD_FRAME = 8;
+const WOOD_OUTER = 4;
+const PANEL_WIDTH_DESKTOP = 570;
+
+const BOARD_GRID_PX = (BOARD_SIZE - 1) * CELL_SIZE;
+const BOARD_FACE_PX = BOARD_GRID_PX + BOARD_MARGIN * 2;
+const BOARD_TOTAL_PX = BOARD_FACE_PX + (WOOD_FRAME + WOOD_OUTER) * 2;
+
+// ==================== 颜色 ====================
+const COLORS = {
+    bg: '#f8f3ea',
+    line: '#3c3024',
+    wood: '#dec08e',
+    woodFrame: '#b28c58',
+    woodDark: '#8e6638',
+    woodHighlight: '#cdb076',
+    gold: '#ebc323',
+};
+
+// ==================== 游戏状态 ====================
+let board = [];
+let currentPlayer = 1;
+let moveCount = 0;
+let lastMove = null;
+let winner = null;
+let moveHistory = [];
+let gameMode = 'pvp';
+let aiThinking = false;
+let hoverPos = null;
+let winAnimFrame = 0;
+let particles = [];
+let toastTimer = 0;
+let toastMessage = '';
+let state = 'menu'; // 'menu' | 'game'
+
+// ==================== DOM 元素 ====================
+const menuEl = document.getElementById('menu');
+const gameEl = document.getElementById('game');
+const canvas = document.getElementById('board');
+const ctx = canvas.getContext('2d');
+const toastEl = document.getElementById('toast');
+
+// ==================== DPI 缩放 ====================
+const DPR = Math.min(window.devicePixelRatio || 1, 2);
+
+function setupCanvas() {
+    const totalPx = BOARD_TOTAL_PX;
+    canvas.style.width = totalPx + 'px';
+    canvas.style.height = totalPx + 'px';
+    canvas.width = totalPx * DPR;
+    canvas.height = totalPx * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+}
+
+// ==================== 棋盘坐标 ====================
+function offsetX() { return WOOD_OUTER + WOOD_FRAME + BOARD_MARGIN; }
+function offsetY() { return WOOD_OUTER + WOOD_FRAME + BOARD_MARGIN; }
+
+function posToGrid(mx, my) {
+    const col = Math.round((mx - offsetX()) / CELL_SIZE);
+    const row = Math.round((my - offsetY()) / CELL_SIZE);
+    if (row >= 0 && row < BOARD_SIZE && col >= 0 && col < BOARD_SIZE) {
+        return [row, col];
+    }
+    return null;
+}
+
+// ==================== 初始化 ====================
+function initBoard() {
+    board = Array.from({ length: BOARD_SIZE }, () => Array(BOARD_SIZE).fill(0));
+    currentPlayer = 1;
+    moveCount = 0;
+    lastMove = null;
+    winner = null;
+    moveHistory = [];
+    aiThinking = false;
+    hoverPos = null;
+    winAnimFrame = 0;
+    particles = [];
+    toastTimer = 0;
+    toastMessage = '';
+    updatePanel();
+}
+
+// ==================== 绘制函数 ====================
+function drawBoard() {
+    const ctx2 = ctx;
+    const totalPx = BOARD_TOTAL_PX;
+
+    // 外层深边
+    ctx2.fillStyle = COLORS.woodDark;
+    ctx2.fillRect(0, 0, totalPx, totalPx);
+
+    // 木框
+    const frameX = WOOD_OUTER, frameY = WOOD_OUTER;
+    const frameW = totalPx - WOOD_OUTER * 2, frameH = totalPx - WOOD_OUTER * 2;
+    ctx2.fillStyle = COLORS.woodFrame;
+    ctx2.fillRect(frameX, frameY, frameW, frameH);
+
+    // 高光/阴影
+    ctx2.strokeStyle = COLORS.woodHighlight;
+    ctx2.lineWidth = 2;
+    ctx2.beginPath();
+    ctx2.moveTo(frameX, frameY); ctx2.lineTo(frameX + frameW - 1, frameY);
+    ctx2.moveTo(frameX, frameY); ctx2.lineTo(frameX, frameY + frameH - 1);
+    ctx2.stroke();
+
+    ctx2.strokeStyle = COLORS.woodDark;
+    ctx2.beginPath();
+    ctx2.moveTo(frameX, frameY + frameH - 1); ctx2.lineTo(frameX + frameW - 1, frameY + frameH - 1);
+    ctx2.moveTo(frameX + frameW - 1, frameY); ctx2.lineTo(frameX + frameW - 1, frameY + frameH - 1);
+    ctx2.stroke();
+
+    // 棋盘面渐变
+    const faceX = WOOD_OUTER + WOOD_FRAME, faceY = WOOD_OUTER + WOOD_FRAME;
+    const faceW = BOARD_FACE_PX, faceH = BOARD_FACE_PX;
+    const grad = ctx2.createLinearGradient(0, faceY, 0, faceY + faceH);
+    grad.addColorStop(0, '#dec08e');
+    grad.addColorStop(0.5, '#d8b880');
+    grad.addColorStop(1, '#cfaa6e');
+    ctx2.fillStyle = grad;
+    ctx2.fillRect(faceX, faceY, faceW, faceH);
+
+    // 网格线
+    const ox = offsetX(), oy = offsetY();
+    ctx2.strokeStyle = COLORS.line;
+    ctx2.lineWidth = 1;
+    for (let i = 0; i < BOARD_SIZE; i++) {
+        const pos = oy + i * CELL_SIZE;
+        ctx2.beginPath();
+        ctx2.moveTo(ox, pos); ctx2.lineTo(ox + BOARD_GRID_PX, pos);
+        ctx2.stroke();
+        const posX = ox + i * CELL_SIZE;
+        ctx2.beginPath();
+        ctx2.moveTo(posX, oy); ctx2.lineTo(posX, oy + BOARD_GRID_PX);
+        ctx2.stroke();
+    }
+
+    // 星位
+    const starPoints = [[3,3],[3,7],[3,11],[7,3],[7,7],[7,11],[11,3],[11,7],[11,11]];
+    for (const [r, c] of starPoints) {
+        const cx = ox + c * CELL_SIZE, cy = oy + r * CELL_SIZE;
+        ctx2.fillStyle = COLORS.line;
+        ctx2.beginPath();
+        ctx2.arc(cx, cy, 4, 0, Math.PI * 2);
+        ctx2.fill();
+    }
+}
+
+function drawStone(cx, cy, player, alpha = 1) {
+    const R = CELL_SIZE / 2 - 2;
+    ctx.save();
+    ctx.globalAlpha = alpha;
+
+    if (player === 1) {
+        // Black stone with 3D effect
+        // Shadow
+        ctx.fillStyle = 'rgba(55,48,40,0.6)';
+        ctx.beginPath(); ctx.arc(cx + 1, cy + 2, R, 0, Math.PI * 2); ctx.fill();
+        // Base
+        const grad = ctx.createRadialGradient(cx - R*0.3, cy - R*0.3, R*0.1, cx, cy, R);
+        grad.addColorStop(0, '#828078');
+        grad.addColorStop(0.4, '#343230');
+        grad.addColorStop(1, '#1c1c1c');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
+        // Highlight
+        ctx.fillStyle = 'rgba(180,175,170,0.6)';
+        ctx.beginPath(); ctx.arc(cx - R*0.35, cy - R*0.4, R*0.18, 0, Math.PI * 2); ctx.fill();
+    } else {
+        // White stone with porcelain effect
+        ctx.fillStyle = 'rgba(160,150,142,0.5)';
+        ctx.beginPath(); ctx.arc(cx + 1, cy + 2, R, 0, Math.PI * 2); ctx.fill();
+        // Border
+        ctx.fillStyle = '#b9b2aa';
+        ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.fill();
+        // Body
+        const grad = ctx.createRadialGradient(cx - R*0.25, cy - R*0.3, R*0.1, cx, cy, R);
+        grad.addColorStop(0, '#ffffff');
+        grad.addColorStop(0.5, '#f8f8f6');
+        grad.addColorStop(1, '#e0d8d0');
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(cx - 1, cy - 1, R - 1, 0, Math.PI * 2); ctx.fill();
+        // Bright spot
+        ctx.fillStyle = 'rgba(255,255,255,0.9)';
+        ctx.beginPath(); ctx.arc(cx - R*0.3, cy - R*0.35, R*0.22, 0, Math.PI * 2); ctx.fill();
+    }
+
+    ctx.restore();
+}
+
+function drawStones() {
+    const ox = offsetX(), oy = offsetY();
+    for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+            if (board[r][c] === 0) continue;
+            const cx = ox + c * CELL_SIZE, cy = oy + r * CELL_SIZE;
+            drawStone(cx, cy, board[r][c]);
+            // Last move marker
+            if (lastMove && lastMove[0] === r && lastMove[1] === c) {
+                ctx.fillStyle = '#d23732';
+                ctx.beginPath();
+                ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+}
+
+function drawHoverPreview() {
+    if (!hoverPos || winner !== null || aiThinking) return;
+    if (gameMode === 'pve' && currentPlayer !== 1) return;
+    const [r, c] = hoverPos;
+    if (board[r][c] !== 0) return;
+    const ox = offsetX(), oy = offsetY();
+    const cx = ox + c * CELL_SIZE, cy = oy + r * CELL_SIZE;
+    drawStone(cx, cy, currentPlayer, 0.4);
+}
+
+function drawParticles() {
+    for (const p of particles) {
+        const alpha = p.life / p.maxLife;
+        ctx.fillStyle = `rgba(${p.r},${p.g},${p.b},${alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size * alpha, 0, Math.PI * 2);
+        ctx.fill();
+    }
+}
+
+function drawWinnerBanner() {
+    if (winner === null) return;
+
+    const frame = winAnimFrame;
+    let scale = 1;
+    if (frame < 25) {
+        const t = frame / 25;
+        scale = 0.3 + (1 - Math.pow(1 - t, 3) * Math.cos(t * Math.PI * 0.5)) * 0.7;
+    } else {
+        scale = 1 + Math.sin((frame - 25) * 0.04) * 0.03;
+    }
+
+    const boardCenterX = BOARD_TOTAL_PX / 2;
+    const boardCenterY = BOARD_TOTAL_PX / 2;
+    const bw = 380, bh = 110;
+    const bx = boardCenterX - bw / 2, by = boardCenterY - bh / 2;
+
+    const shimmer = Math.abs(Math.sin(frame * 0.08));
+
+    // Glow
+    ctx.fillStyle = `rgba(255,215,0,${0.12 + shimmer * 0.06})`;
+    ctx.beginPath();
+    ctx.roundRect(bx - 14, by - 14, bw + 28, bh + 28, 18);
+    ctx.fill();
+
+    // Dark background
+    const bgColor = winner === 0 ? 'rgba(42,42,40,0.9)' : (winner === 1 ? 'rgba(24,16,8,0.9)' : 'rgba(44,36,28,0.9)');
+    ctx.fillStyle = bgColor;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, bw, bh, 14);
+    ctx.fill();
+
+    // Border
+    ctx.strokeStyle = winner === 0 ? 'rgba(180,180,175,0.5)' : `rgba(255,215,0,${0.3 + shimmer * 0.2})`;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.roundRect(bx, by, bw, bh, 14);
+    ctx.stroke();
+
+    // Stone icon
+    const stoneR = 20;
+    const stoneCx = bx + 48, stoneCy = by + bh / 2;
+    if (winner !== 0) {
+        drawStone(stoneCx, stoneCy, winner);
+    }
+
+    // Text
+    let winText = winner === 0 ? '平    局' : (winner === 1 ? '黑 棋 胜 利' : '白 棋 胜 利');
+    ctx.fillStyle = winner === 0 ? '#b4b4af' : COLORS.gold;
+    ctx.font = `bold ${52 * scale}px "Microsoft YaHei","SimHei","PingFang SC",sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    // Shadow
+    ctx.fillStyle = 'rgba(16,8,0,0.5)';
+    for (const [dx, dy] of [[-2,0],[2,0],[0,-2],[0,2],[-1,-1],[1,1],[-1,1],[1,-1]]) {
+        ctx.fillText(winText, bx + bw/2 + dx, by + bh/2 + dy);
+    }
+
+    // Main
+    const colorShift = Math.min(255, 215 + shimmer * 40);
+    ctx.fillStyle = `rgb(${Math.min(255, colorShift)},${Math.min(255, 195 + shimmer * 30)},${Math.min(255, 35 + shimmer * 50)})`;
+    ctx.fillText(winText, bx + bw/2, by + bh/2);
+    ctx.textAlign = 'start';
+}
+
+function render() {
+    ctx.clearRect(0, 0, BOARD_TOTAL_PX, BOARD_TOTAL_PX);
+    drawBoard();
+    drawStones();
+    drawHoverPreview();
+    drawParticles();
+    if (winner !== null) {
+        drawWinnerBanner();
+    }
+}
+
+// ==================== 游戏逻辑 ====================
+const DIRECTIONS = [[0,1],[1,0],[1,1],[1,-1]];
+
+function checkWin(row, col) {
+    const player = board[row][col];
+    for (const [dr, dc] of DIRECTIONS) {
+        let count = 1;
+        let r = row + dr, c = col + dc;
+        while (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r][c] === player) {
+            count++; r += dr; c += dc;
+        }
+        r = row - dr; c = col - dc;
+        while (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r][c] === player) {
+            count++; r -= dr; c -= dc;
+        }
+        if (count >= 5) return true;
+    }
+    return false;
+}
+
+function evaluatePos(row, col, player) {
+    let score = 0;
+    for (const [dr, dc] of DIRECTIONS) {
+        let count = 1, openEnds = 0;
+        let r = row + dr, c = col + dc;
+        while (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r][c] === player) {
+            count++; r += dr; c += dc;
+        }
+        if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r][c] === 0) openEnds++;
+        r = row - dr; c = col - dc;
+        while (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r][c] === player) {
+            count++; r -= dr; c -= dc;
+        }
+        if (r >= 0 && r < BOARD_SIZE && c >= 0 && c < BOARD_SIZE && board[r][c] === 0) openEnds++;
+        if (count >= 5) score += 100000;
+        else if (count === 4) score += openEnds === 2 ? 50000 : (openEnds === 1 ? 5000 : 0);
+        else if (count === 3) score += openEnds === 2 ? 5000 : (openEnds === 1 ? 500 : 0);
+        else if (count === 2) score += openEnds === 2 ? 500 : (openEnds === 1 ? 50 : 0);
+        else if (count === 1) score += openEnds === 2 ? 50 : (openEnds === 1 ? 10 : 0);
+    }
+    return score;
+}
+
+function hasNeighbor(row, col, dist) {
+    const rMin = Math.max(0, row - dist), rMax = Math.min(BOARD_SIZE - 1, row + dist);
+    const cMin = Math.max(0, col - dist), cMax = Math.min(BOARD_SIZE - 1, col + dist);
+    for (let r = rMin; r <= rMax; r++) {
+        for (let c = cMin; c <= cMax; c++) {
+            if (board[r][c] !== 0) return true;
+        }
+    }
+    return false;
+}
+
+function aiMove() {
+    const DEFENSE_W = 1.1, OFFENSE_W = 1.0;
+    let bestScore = -1, bestMove = null;
+    for (let r = 0; r < BOARD_SIZE; r++) {
+        for (let c = 0; c < BOARD_SIZE; c++) {
+            if (board[r][c] !== 0) continue;
+            if (!hasNeighbor(r, c, 2)) continue;
+            const offense = evaluatePos(r, c, 2);
+            const defense = evaluatePos(r, c, 1);
+            const total = offense * OFFENSE_W + defense * DEFENSE_W;
+            if (total > bestScore) { bestScore = total; bestMove = [r, c]; }
+        }
+    }
+    if (!bestMove) bestMove = [Math.floor(BOARD_SIZE/2), Math.floor(BOARD_SIZE/2)];
+
+    const [r, c] = bestMove;
+    board[r][c] = 2;
+    moveHistory.push([r, c, 2]);
+    moveCount++;
+    lastMove = [r, c];
+
+    if (checkWin(r, c)) {
+        winner = 2;
+        spawnParticles();
+    } else if (moveCount >= BOARD_SIZE * BOARD_SIZE) {
+        winner = 0;
+    }
+    currentPlayer = 1;
+    aiThinking = false;
+    updatePanel();
+    render();
+}
+
+function placeStone(row, col) {
+    board[row][col] = currentPlayer;
+    moveHistory.push([row, col, currentPlayer]);
+    moveCount++;
+    lastMove = [row, col];
+
+    if (checkWin(row, col)) {
+        winner = currentPlayer;
+        spawnParticles();
+    } else if (moveCount >= BOARD_SIZE * BOARD_SIZE) {
+        winner = 0;
+    } else {
+        currentPlayer = 3 - currentPlayer;
+        if (gameMode === 'pve') {
+            aiThinking = true;
+            setTimeout(aiMove, 200);
+        }
+    }
+    updatePanel();
+    render();
+}
+
+// ==================== 粒子 ====================
+function spawnParticles() {
+    particles = [];
+    const cx = offsetX() + Math.floor(BOARD_SIZE/2) * CELL_SIZE;
+    const cy = offsetY() + Math.floor(BOARD_SIZE/2) * CELL_SIZE;
+    const hues = [[255,215,0],[255,180,50],[255,240,100],[255,150,50],[255,200,80]];
+    for (let i = 0; i < 60; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 1.5 + Math.random() * 3.5;
+        const hue = hues[Math.floor(Math.random() * hues.length)];
+        particles.push({
+            x: cx, y: cy,
+            vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+            life: 40 + Math.floor(Math.random() * 50),
+            maxLife: 40 + Math.floor(Math.random() * 50),
+            r: hue[0], g: hue[1], b: hue[2],
+            size: 2 + Math.floor(Math.random() * 4)
+        });
+    }
+}
+
+function updateParticles() {
+    for (const p of particles) {
+        p.x += p.vx; p.y += p.vy;
+        p.vy += 0.04;
+        p.life--;
+    }
+    particles = particles.filter(p => p.life > 0);
+}
+
+// ==================== 面板更新 ====================
+function updatePanel() {
+    document.getElementById('modeBox').textContent = gameMode === 'pve' ? '人机对战' : '双人对战';
+    document.getElementById('moveCount').textContent = moveCount + ' 手';
+
+    const turnDot = document.getElementById('turnDot');
+    const turnText = document.getElementById('turnText');
+    turnDot.className = 'stone-dot';
+    turnText.className = 'turn-text';
+
+    if (winner === 0) {
+        turnDot.classList.add('draw');
+        turnText.textContent = '平局';
+        turnText.classList.add('end');
+    } else if (winner !== null) {
+        turnDot.classList.add(winner === 1 ? 'black' : 'white');
+        turnText.textContent = '对局结束';
+        turnText.classList.add('end');
+    } else if (aiThinking) {
+        turnDot.classList.add('white');
+        turnText.textContent = 'AI 思考中...';
+    } else {
+        turnDot.classList.add(currentPlayer === 1 ? 'black' : 'white');
+        turnText.textContent = currentPlayer === 1 ? '黑棋回合' : '白棋回合';
+    }
+
+    const lastInfo = document.getElementById('lastMoveInfo');
+    if (lastMove && winner === null) {
+        const piece = board[lastMove[0]][lastMove[1]] === 1 ? '黑' : '白';
+        lastInfo.textContent = `${piece} (${lastMove[1]+1}, ${lastMove[0]+1})`;
+    } else {
+        lastInfo.textContent = '-';
+    }
+}
+
+function showToast(msg) {
+    toastMessage = msg;
+    toastTimer = 90;
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+}
+
+// ==================== 操作 ====================
+function newGame() {
+    initBoard();
+    updatePanel();
+    render();
+    showToast('新对局开始');
+}
+
+function undoMove() {
+    if (aiThinking) return;
+    const histLen = moveHistory.length;
+    if (histLen === 0) { showToast('当前没有棋子可悔'); return; }
+
+    let steps, pieceName;
+    if (gameMode === 'pvp') {
+        steps = 1; pieceName = '一子';
+    } else {
+        steps = histLen === 1 ? 1 : 2;
+        pieceName = histLen === 1 ? '一子' : '两子';
+    }
+
+    for (let i = 0; i < steps; i++) {
+        const [r, c] = moveHistory.pop();
+        board[r][c] = 0;
+        moveCount--;
+    }
+
+    if (moveHistory.length > 0) {
+        lastMove = [moveHistory.at(-1)[0], moveHistory.at(-1)[1]];
+        currentPlayer = gameMode === 'pve' ? 1 : (3 - moveHistory.at(-1)[2]);
+    } else {
+        lastMove = null;
+        currentPlayer = 1;
+    }
+
+    winner = null;
+    particles = [];
+    winAnimFrame = 0;
+    aiThinking = false;
+    updatePanel();
+    render();
+    showToast(`已撤销 ${pieceName}`);
+}
+
+function switchMode() {
+    if (aiThinking) return;
+    gameMode = gameMode === 'pvp' ? 'pve' : 'pvp';
+    initBoard();
+    updatePanel();
+    render();
+    showToast(`已切换为 ${gameMode === 'pve' ? '人机对战' : '双人对战'}`);
+}
+
+function backToMenu() {
+    state = 'menu';
+    gameEl.style.display = 'none';
+    menuEl.style.display = 'flex';
+    initBoard();
+}
+
+// ==================== 事件处理 ====================
+canvas.addEventListener('mousemove', (e) => {
+    if (state !== 'game' || winner !== null || aiThinking) { hoverPos = null; render(); return; }
+    if (gameMode === 'pve' && currentPlayer !== 1) { hoverPos = null; render(); return; }
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = BOARD_TOTAL_PX / rect.width;
+    const scaleY = BOARD_TOTAL_PX / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX;
+    const my = (e.clientY - rect.top) * scaleY;
+    const grid = posToGrid(mx, my);
+    if (grid && board[grid[0]][grid[1]] === 0) {
+        if (!hoverPos || hoverPos[0] !== grid[0] || hoverPos[1] !== grid[1]) {
+            hoverPos = grid;
+            render();
+        }
+    } else {
+        if (hoverPos !== null) { hoverPos = null; render(); }
+    }
+});
+
+canvas.addEventListener('mouseleave', () => { hoverPos = null; render(); });
+
+canvas.addEventListener('click', (e) => {
+    if (state !== 'game' || winner !== null || aiThinking) return;
+    if (gameMode === 'pve' && currentPlayer !== 1) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = BOARD_TOTAL_PX / rect.width;
+    const scaleY = BOARD_TOTAL_PX / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX;
+    const my = (e.clientY - rect.top) * scaleY;
+    const grid = posToGrid(mx, my);
+    if (!grid) return;
+    const [row, col] = grid;
+    if (board[row][col] !== 0) return;
+    hoverPos = null;
+    placeStone(row, col);
+});
+
+// Touch events for mobile
+canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    if (state !== 'game' || winner !== null || aiThinking) return;
+    if (gameMode === 'pve' && currentPlayer !== 1) return;
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = BOARD_TOTAL_PX / rect.width;
+    const scaleY = BOARD_TOTAL_PX / rect.height;
+    const touch = e.touches[0];
+    const mx = (touch.clientX - rect.left) * scaleX;
+    const my = (touch.clientY - rect.top) * scaleY;
+    const grid = posToGrid(mx, my);
+    if (!grid) return;
+    const [row, col] = grid;
+    if (board[row][col] !== 0) return;
+    hoverPos = null;
+    placeStone(row, col);
+}, { passive: false });
+
+// ==================== 游戏循环 ====================
+function gameLoop() {
+    if (state === 'game') {
+        if (toastTimer > 0) {
+            toastTimer--;
+            if (toastTimer === 0) {
+                toastEl.classList.remove('show');
+            }
+        }
+
+        if (winner !== null) {
+            winAnimFrame++;
+            updateParticles();
+        }
+
+        if (particles.length > 0 || winner !== null) {
+            render();
+        }
+    }
+
+    requestAnimationFrame(gameLoop);
+}
+
+// ==================== 启动 ====================
+function startGame(mode) {
+    gameMode = mode;
+    state = 'game';
+    initBoard();
+    menuEl.style.display = 'none';
+    gameEl.style.display = 'flex';
+    setupCanvas();
+    updatePanel();
+    render();
+}
+
+// 初始化
+setupCanvas();
+initBoard();
+render();
+
+// ==================== 响应式处理 ====================
+window.addEventListener('resize', () => {
+    setupCanvas();
+    if (state === 'game') render();
+});
+
+// 启动游戏循环
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>
